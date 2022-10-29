@@ -5,7 +5,6 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
-	"log"
 	"net/http"
 	"os"
 	"regexp"
@@ -67,6 +66,7 @@ func NewManager(cookie string) (m Manager) {
 	m.Gtk2 = GenderGTK(m.PSkey)
 	m.QQ = strings.TrimPrefix(m.Uin, "o")
 	r.Header.Set("user-agent", ua)
+	m.r = r
 	return
 }
 
@@ -170,7 +170,6 @@ func (m *Manager) SendShuoShuo(Content string) (SendShuoShuoResult, error) {
 	var result SendShuoShuoResult
 	m.r.Header.Set("referer", "https://user.qzone.qq.com/"+m.QQ)
 	m.r.Header.Set("Origin", "https://user.qzone.qq.com/")
-	log.Println(m.r.Header)
 	res, err := m.r.Post("https://user.qzone.qq.com/proxy/domain/taotao.qzone.qq.com/cgi-bin/emotion_cgi_publish_v6?g_tk="+m.Gtk2+"&qzonetoken="+token+"&uin="+m.QQ, requests.Datas{
 		"syn_tweet_verson": "1",
 		"paramstr":         "1",
@@ -199,7 +198,6 @@ func (m *Manager) UploadPic(picBase64 string) (UploadPicResult, error) {
 	var result UploadPicResult
 	m.r.Header.Set("referer", "https://user.qzone.qq.com/"+m.QQ)
 	m.r.Header.Set("Origin", "https://user.qzone.qq.com/")
-	//log.Println(m.r.Header)
 	res, err := m.r.Post("https://up.qzone.qq.com/cgi-bin/upload/cgi_upload_image?g_tk="+m.Gtk2+"&qzonetoken="+token+"&uin="+m.QQ, requests.Datas{
 		"filename":       "filename",
 		"zzpanelkey":     "",
@@ -323,8 +321,7 @@ func (m *Manager) Like(unikey, curkey, appid string) error {
 	token, _ := m.GetQzoneToken()
 	m.r.Header.Set("referer", "https://user.qzone.qq.com/"+m.QQ)
 	m.r.Header.Set("Origin", "https://user.qzone.qq.com/")
-	//log.Println(m.r.Header)
-	res, err := m.r.Post("https://user.qzone.qq.com/proxy/domain/w.qzone.qq.com/cgi-bin/likes/internal_dolike_app?g_tk="+m.Gtk2+"&qzonetoken="+token+"&uin="+m.QQ, requests.Datas{
+	_, err := m.r.Post("https://user.qzone.qq.com/proxy/domain/w.qzone.qq.com/cgi-bin/likes/internal_dolike_app?g_tk="+m.Gtk2+"&qzonetoken="+token+"&uin="+m.QQ, requests.Datas{
 		"opuin":      m.QQ,
 		"unikey":     unikey,
 		"curkey":     curkey,
@@ -336,11 +333,6 @@ func (m *Manager) Like(unikey, curkey, appid string) error {
 	if err != nil {
 		return err
 	}
-	//err = res.Json(&result)
-	//if err != nil {
-	//	return result, err
-	//}
-	log.Println(res.Text())
 	return nil
 }
 func GetPicBoAndRichVal(data UploadPicResult) (PicBo, RichVal string, err error) {
