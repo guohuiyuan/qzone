@@ -13,7 +13,6 @@ import (
 	"time"
 
 	"github.com/dop251/goja"
-	"github.com/mcoo/OPQBot"
 	"github.com/mcoo/requests"
 )
 
@@ -70,55 +69,6 @@ func NewManager(cookie string) (m Manager) {
 	return
 }
 
-func NewQzoneManager(qq int64, cookie OPQBot.Cookie) Manager {
-	var m Manager
-	m.Skey = cookie.Skey
-	m.PSkey = cookie.PSkey.Qzone
-	m.Gtk = GenderGTK(m.Skey)
-	m.Gtk2 = GenderGTK(m.PSkey)
-	m.Uin = "o" + strconv.FormatInt(qq, 10)
-	r := requests.Requests()
-
-	c := &http.Cookie{
-		Name:  "pt2gguin",
-		Value: "o" + strconv.FormatInt(qq, 10),
-	}
-	r.SetCookie(c)
-	c = &http.Cookie{
-		Name:  "uin",
-		Value: m.Uin,
-	}
-	r.SetCookie(c)
-	c = &http.Cookie{
-		Name:  "skey",
-		Value: m.Skey,
-	}
-	r.SetCookie(c)
-	c = &http.Cookie{
-		Name:  "p_skey",
-		Value: m.PSkey,
-	}
-	r.SetCookie(c)
-	c = &http.Cookie{
-		Name:  "p_uin",
-		Value: m.Uin,
-	}
-	r.SetCookie(c)
-	r.Header.Set("user-agent", ua)
-	m.r = r
-	for _, v := range strings.Split(cookie.Cookies, ";") {
-		if v2 := strings.Split(v, "="); len(v2) == 2 {
-			c = &http.Cookie{
-				Name:  v2[0],
-				Value: v2[1],
-			}
-			r.SetCookie(c)
-		}
-
-	}
-	m.QQ = strconv.FormatInt(qq, 10)
-	return m
-}
 func (m *Manager) GetQzoneToken() (string, error) {
 	if m.qzoneToken == "" {
 		return "", errors.New("请先刷新QzoneToken！")
@@ -355,8 +305,6 @@ func GetBase64(path string) (string, error) {
 	if err != nil {
 		return "", err
 	}
-
 	res := base64.StdEncoding.EncodeToString(srcByte)
-
 	return res, nil
 }
