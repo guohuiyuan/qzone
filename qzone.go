@@ -38,7 +38,7 @@ type Manager struct {
 	PSkey      string
 	Skey       string
 	Uin        string
-	qzoneToken string
+	QzoneToken string
 }
 
 func NewManager(cookie string) (m Manager) {
@@ -70,10 +70,10 @@ func NewManager(cookie string) (m Manager) {
 }
 
 func (m *Manager) GetQzoneToken() (string, error) {
-	if m.qzoneToken == "" {
+	if m.QzoneToken == "" {
 		return "", errors.New("请先刷新QzoneToken！")
 	}
-	return m.qzoneToken, nil
+	return m.QzoneToken, nil
 
 }
 func (m *Manager) RefreshToken() error {
@@ -87,7 +87,7 @@ func (m *Manager) RefreshToken() error {
 	}
 	result := r.FindStringSubmatch(res.Text())
 	if len(result) == 2 {
-		m.qzoneToken = result[1]
+		m.QzoneToken = result[1]
 		return nil
 	}
 	return errors.New("获取qzonetoken失败 ")
