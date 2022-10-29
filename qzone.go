@@ -5,9 +5,9 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
-	"io/ioutil"
 	"log"
 	"net/http"
+	"os"
 	"regexp"
 	"strconv"
 	"strings"
@@ -16,6 +16,10 @@ import (
 	"github.com/dop251/goja"
 	"github.com/mcoo/OPQBot"
 	"github.com/mcoo/requests"
+)
+
+const (
+	ua = "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/106.0.0.0 Safari/537.36"
 )
 
 // GenderGTK 生成GTK
@@ -37,6 +41,33 @@ type Manager struct {
 	Skey       string
 	Uin        string
 	qzoneToken string
+}
+
+func NewManager(cookie string) (m Manager) {
+	r := requests.Requests()
+	for _, v := range strings.Split(cookie, ";") {
+		name, val, f := strings.Cut(v, "=")
+		if f {
+			switch name {
+			case "uin":
+				m.Uin = val
+			case "skey":
+				m.Skey = val
+			case "p_skey":
+				m.PSkey = val
+			}
+			c := &http.Cookie{
+				Name:  name,
+				Value: val,
+			}
+			r.SetCookie(c)
+		}
+	}
+	m.Gtk = GenderGTK(m.Skey)
+	m.Gtk2 = GenderGTK(m.PSkey)
+	m.QQ = strings.TrimPrefix(m.Uin, "o")
+	r.Header.Set("user-agent", ua)
+	return
 }
 
 func NewQzoneManager(qq int64, cookie OPQBot.Cookie) Manager {
@@ -73,7 +104,7 @@ func NewQzoneManager(qq int64, cookie OPQBot.Cookie) Manager {
 		Value: m.Uin,
 	}
 	r.SetCookie(c)
-	r.Header.Set("user-agent", "User-Agent: Mozilla/5.0 (Windows NT 10.0; WOW64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/69.0.3497.100 Safari/537.36")
+	r.Header.Set("user-agent", ua)
 	m.r = r
 	for _, v := range strings.Split(cookie.Cookies, ";") {
 		if v2 := strings.Split(v, "="); len(v2) == 2 {
@@ -328,7 +359,7 @@ func GetPicBoAndRichVal(data UploadPicResult) (PicBo, RichVal string, err error)
 }
 
 func GetBase64(path string) (string, error) {
-	srcByte, err := ioutil.ReadFile(path)
+	srcByte, err := os.ReadFile(path)
 	if err != nil {
 		return "", err
 	}
